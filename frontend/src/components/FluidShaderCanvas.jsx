@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 /**
  * FluidShaderCanvas
- * WebGL canvas component executing 2D fluid dynamics with GPU driver safe GLSL ES 1.0 loops.
+ * High-performance WebGL fluid dynamics canvas with zero-recompile persistent WebGL context.
  */
 export const FluidShaderCanvas = ({ 
   className = "fixed inset-0 w-full h-full pointer-events-auto",
@@ -14,6 +14,27 @@ export const FluidShaderCanvas = ({
   onMouseMoveCoords = null
 }) => {
   const canvasRef = useRef(null);
+
+  // Store latest props in ref to avoid destroying/re-compiling WebGL program on state changes
+  const propsRef = useRef({
+    speedMultiplier,
+    densityFactor,
+    rerouteActive,
+    repellers,
+    attractors,
+    onMouseMoveCoords
+  });
+
+  useEffect(() => {
+    propsRef.current = {
+      speedMultiplier,
+      densityFactor,
+      rerouteActive,
+      repellers,
+      attractors,
+      onMouseMoveCoords
+    };
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,8 +59,12 @@ export const FluidShaderCanvas = ({
     }
     syncSize();
 
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) return;
+    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: false, alpha: false }) || 
+               canvas.getContext('experimental-webgl');
+    if (!gl) {
+      console.warn('⚠️ WebGL context not available');
+      return;
+    }
 
     const vsSource = `
       attribute vec2 a_position;
@@ -94,7 +119,6 @@ export const FluidShaderCanvas = ({
           float distToMouse = length(uv - mouseUV);
           float mouseForce = smoothstep(0.35, 0.0, distToMouse);
 
-          // Calculate GLSL ES 1.0 compliant force field displacements
           vec2 forceDisplacement = vec2(0.0);
           float totalRepellerForce = 0.0;
           float totalAttractorForce = 0.0;
@@ -143,10 +167,8 @@ export const FluidShaderCanvas = ({
           float waves = sin(uv.y * 20.0 + u_time * speed + fluid * 5.0 + mouseForce * 3.0) * 0.5 + 0.5;
           color = mix(color, amber, waves * fluid * 0.3);
 
-          // Attractor vector flow highlight
           color = mix(color, neonGreen, totalAttractorForce * 0.35);
 
-          // Repeller crimson bottleneck highlight
           float pressure = smoothstep(0.5, 0.9, fluid);
           color = mix(color, crimson, pressure * (0.8 + totalRepellerForce * 0.4));
 
@@ -214,8 +236,8 @@ export const FluidShaderCanvas = ({
         const ny = 1.0 - (event.clientY - rect.top) / rect.height;
         mouse.x = nx * canvas.width;
         mouse.y = ny * canvas.height;
-        if (onMouseMoveCoords) {
-          onMouseMoveCoords({ x: Math.round(nx * 100), y: Math.round((1 - ny) * 100) });
+        if (propsRef.current.onMouseMoveCoords) {
+          propsRef.current.onMouseMoveCoords({ x: Math.round(nx * 100), y: Math.round((1 - ny) * 100) });
         }
       }
     };
@@ -227,18 +249,20 @@ export const FluidShaderCanvas = ({
       if (!gl || !canvas) return;
       if (typeof ResizeObserver === 'undefined') syncSize();
 
+      const currentProps = propsRef.current;
+
       gl.viewport(0, 0, canvas.width, canvas.height);
-      const elapsedTime = (currentTime - startTime) * 0.001 * speedMultiplier;
+      const elapsedTime = (currentTime - startTime) * 0.001 * currentProps.speedMultiplier;
 
       if (uTime) gl.uniform1f(uTime, elapsedTime);
       if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
       if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
-      if (uReroute) gl.uniform1f(uReroute, rerouteActive ? 1.0 : 0.0);
-      if (uDensity) gl.uniform1f(uDensity, densityFactor);
+      if (uReroute) gl.uniform1f(uReroute, currentProps.rerouteActive ? 1.0 : 0.0);
+      if (uDensity) gl.uniform1f(uDensity, currentProps.densityFactor);
 
       // Pack repeller arrays into Float32Array (x, y, force, radius)
       const packedRepellers = new Float32Array(16);
-      const rList = Array.isArray(repellers) ? repellers.slice(0, 4) : [];
+      const rList = Array.isArray(currentProps.repellers) ? currentProps.repellers.slice(0, 4) : [];
       rList.forEach((r, i) => {
         packedRepellers[i * 4 + 0] = r.x ?? 0.5;
         packedRepellers[i * 4 + 1] = r.y ?? 0.4;
@@ -248,7 +272,7 @@ export const FluidShaderCanvas = ({
 
       // Pack attractor arrays into Float32Array (x, y, force)
       const packedAttractors = new Float32Array(12);
-      const aList = Array.isArray(attractors) ? attractors.slice(0, 4) : [];
+      const aList = Array.isArray(currentProps.attractors) ? currentProps.attractors.slice(0, 4) : [];
       aList.forEach((a, i) => {
         packedAttractors[i * 3 + 0] = a.x ?? 0.84;
         packedAttractors[i * 3 + 1] = a.y ?? 0.85;
@@ -277,7 +301,7 @@ export const FluidShaderCanvas = ({
         gl.deleteShader(fragShader);
       }
     };
-  }, [speedMultiplier, densityFactor, rerouteActive, repellers, attractors, onMouseMoveCoords]);
+  }, []); // Run ONLY ONCE on mount to ensure persistent WebGL context without blackouts
 
   return (
     <canvas 

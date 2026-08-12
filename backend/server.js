@@ -31,8 +31,9 @@ app.use(cors({
 
 app.use(express.json());
 
-// 1. Target Hugging Face Llama-3-8B-Instruct Model Endpoint
-const HF_API_URL = 'https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct';
+// 1. Target Hugging Face Qwen Model Endpoint (60s timeout, Qwen2.5-7B-Instruct)
+const HF_API_URL = process.env.HF_API_URL || 'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct';
+const HF_MODEL = process.env.HF_MODEL || 'Qwen/Qwen2.5-7B-Instruct';
 
 /**
  * GET /api/health
@@ -40,46 +41,50 @@ const HF_API_URL = 'https://api-inference.huggingface.co/models/meta-llama/Meta-
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    message: 'Kinetic Flow Llama-3 Neural Physics Engine',
+    message: 'Kinetic Flow Qwen-2.5 Neural Physics Engine',
     timestamp: new Date().toISOString()
   });
 });
 
 /**
  * POST /api/predict-bottleneck
- * Accepts venue telemetry and returns spatial force field tensors using Llama-3-8B-Instruct
+ * Accepts venue telemetry and returns spatial force field tensors using Qwen-2.5-7B-Instruct
  */
 app.post('/api/predict-bottleneck', async (req, res) => {
   const { 
     venueType = 'Central Railway Terminal', 
     expectedCrowd = 50000, 
     activeGates = 3, 
-    timeToRushHour = 'Entry Gate Open' 
+    timeToRushHour = 'Entry Gate Open',
+    nodes = []
   } = req.body || {};
 
-  console.log(`\n[POST /api/predict-bottleneck] Telemetry Input: Venue="${venueType}", Crowd=${expectedCrowd}, Phase="${timeToRushHour}"`);
+  console.log(`\n[POST /api/predict-bottleneck] Telemetry Input: Venue="${venueType}", Crowd=${expectedCrowd}, Phase="${timeToRushHour}", NodesCount=${nodes.length}`);
 
-  // 2. Strict Llama-3 Prompt Structure
-  const systemPrompt = `<|system|>
-You are a mathematical physics engine routing a crowd. You output strictly valid JSON. 
-Do not include any conversational text, markdown, or explanations. 
+  // 2. Strict Qwen-2.5 AI Spatial Intelligence System Prompt
+  const systemPrompt = `You are an AI Spatial Physics & Congestion Architect analyzing crowd routing node graphs. You output strictly valid JSON. 
+Do not include any conversational text, markdown formatting, or explanations. 
 
-Calculate the repeller vectors (crowd bottlenecks) and attractor vectors (safe exits) based on the input.
-Coordinate bounds: x and y must be floats between 0.0 and 1.0.
-Force bounds: force must be a float between 1.0 and 5.0.
+Analyze the provided structural spatial nodes, crowd size, and event phase. 
+Assign a "congestion factor" (float between 0.0 for free-flowing corridor to 1.0 for severe choke point) to each node ID.
 
 Return exactly this JSON format:
 {
+  "nodeWeights": [
+    { "id": "string", "congestion": float, "reason": "string" }
+  ],
   "repellers": [{ "x": float, "y": float, "force": float, "radius": float }],
   "attractors": [{ "x": float, "y": float, "force": float }],
   "pressureMetrics": { "peakDensity": float, "flowVelocity": float }
-}
-<|user|>
-Input: Venue=${venueType}, Crowd=${expectedCrowd}, Phase=${timeToRushHour}
-<|assistant|>
-`;
+}`;
 
-  // Helper for dynamic fallback tensors
+  const nodeSummary = nodes.length > 0 
+    ? nodes.map(n => `${n.id} (${n.name}, type:${n.type}, choke:${!!n.isChoke})`).join('; ')
+    : 'N_MAIN_CHOKE (Main Concourse Choke Point); N_WEST_BYPASS (West Bypass); N_EAST_BYPASS (East Bypass)';
+
+  const userPrompt = `Input: Venue=${venueType}, Crowd=${expectedCrowd}, Phase=${timeToRushHour}, Nodes=[${nodeSummary}]`;
+
+  // Helper for dynamic fallback tensors & node congestion weighting
   const generateDynamicTensors = () => {
     const crowdRatio = expectedCrowd / 100000;
     const phaseMultiplier = timeToRushHour === 'Post-Event Mass Exit' ? 1.35 : (timeToRushHour === 'Mid-Event Concession Rush' ? 1.15 : 0.95);
@@ -97,7 +102,39 @@ Input: Venue=${venueType}, Crowd=${expectedCrowd}, Phase=${timeToRushHour}
       attractors = [{ x: 0.16, y: 0.85, force: 2.0 }, { x: 0.84, y: 0.85, force: 1.8 }];
     }
 
+    // Dynamic congestion factor calculation per node
+    const nodeWeights = nodes.map(node => {
+      let congestion = 0.15;
+      let reason = 'Normal flow corridor';
+
+      const isChokeNode = node.isChoke || node.id.includes('CHOKE') || node.type === 'intersection';
+      const isBypassNode = node.id.includes('BYPASS') || node.name?.toLowerCase().includes('bypass');
+
+      if (isChokeNode) {
+        congestion = parseFloat(Math.min(0.98, 0.45 + crowdRatio * 0.5 * phaseMultiplier).toFixed(2));
+        reason = `Central bottleneck choke point under ${timeToRushHour}`;
+      } else if (isBypassNode) {
+        congestion = parseFloat((0.08 + crowdRatio * 0.1).toFixed(2));
+        reason = 'Low-density emergency bypass corridor';
+      } else if (node.type === 'entry') {
+        congestion = parseFloat((0.2 + crowdRatio * 0.3).toFixed(2));
+        reason = 'Ingress gate corridor';
+      } else if (node.type === 'exit') {
+        congestion = parseFloat((0.15 + crowdRatio * 0.25).toFixed(2));
+        reason = 'Clear egress channel';
+      } else {
+        congestion = parseFloat((0.10 + crowdRatio * 0.2).toFixed(2));
+      }
+
+      return {
+        id: node.id,
+        congestion,
+        reason
+      };
+    });
+
     return {
+      nodeWeights,
       repellers,
       attractors,
       pressureMetrics: {
@@ -112,34 +149,53 @@ Input: Venue=${venueType}, Crowd=${expectedCrowd}, Phase=${timeToRushHour}
 
   if (isPlaceholder) {
     const fallbackTensors = generateDynamicTensors();
-    console.log("[HF Raw Output]: (Local Llama-3 Physics Engine Fallback)");
+    console.log("[HF Raw Output]: (Local Qwen-2.5 Physics Engine Fallback)");
     console.log("[Parsed JSON Payload]:", fallbackTensors);
     return res.json(fallbackTensors);
   }
 
   try {
-    // 3. Axios Request with strict parameters to prevent hallucination
+    // Resolve router endpoint if legacy domain provided
+    const targetUrl = HF_API_URL.includes('api-inference.huggingface.co')
+      ? 'https://router.huggingface.co/v1/chat/completions'
+      : HF_API_URL;
+
+    const isChat = targetUrl.includes('chat/completions') || targetUrl.includes('/v1');
+
+    const requestPayload = isChat ? {
+      model: HF_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: 450,
+      temperature: 0.1
+    } : {
+      inputs: `${systemPrompt}\n${userPrompt}`,
+      parameters: {
+        return_full_text: false,
+        max_new_tokens: 450,
+        temperature: 0.1
+      }
+    };
+
+    // 3. Axios Request with 60000ms (60-second) timeout limit
     const response = await axios.post(
-      HF_API_URL,
-      {
-        inputs: systemPrompt,
-        parameters: {
-          return_full_text: false,
-          max_new_tokens: 250,
-          temperature: 0.1
-        }
-      },
+      targetUrl,
+      requestPayload,
       {
         headers: {
           'Authorization': `Bearer ${hfToken}`,
           'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 60000
       }
     );
 
     let rawOutput = '';
-    if (Array.isArray(response.data) && response.data[0]?.generated_text) {
+    if (response.data?.choices?.[0]?.message?.content) {
+      rawOutput = response.data.choices[0].message.content.trim();
+    } else if (Array.isArray(response.data) && response.data[0]?.generated_text) {
       rawOutput = response.data[0].generated_text.trim();
     } else if (typeof response.data === 'string') {
       rawOutput = response.data.trim();
@@ -164,16 +220,23 @@ Input: Venue=${venueType}, Crowd=${expectedCrowd}, Phase=${timeToRushHour}
 
     console.log("[Parsed JSON Payload]:", predictionJson);
 
+    // Merge fallback node weights if HF didn't return all node weights
+    const fallbackData = generateDynamicTensors();
+    const finalNodeWeights = Array.isArray(predictionJson.nodeWeights) && predictionJson.nodeWeights.length > 0
+      ? predictionJson.nodeWeights
+      : fallbackData.nodeWeights;
+
     return res.json({
-      repellers: Array.isArray(predictionJson.repellers) ? predictionJson.repellers : [{ x: 0.50, y: 0.40, force: 2.5, radius: 0.20 }],
-      attractors: Array.isArray(predictionJson.attractors) ? predictionJson.attractors : [{ x: 0.84, y: 0.85, force: 2.1 }],
-      pressureMetrics: predictionJson.pressureMetrics || { peakDensity: 92.4, flowVelocity: 1.45 }
+      nodeWeights: finalNodeWeights,
+      repellers: Array.isArray(predictionJson.repellers) ? predictionJson.repellers : fallbackData.repellers,
+      attractors: Array.isArray(predictionJson.attractors) ? predictionJson.attractors : fallbackData.attractors,
+      pressureMetrics: predictionJson.pressureMetrics || fallbackData.pressureMetrics
     });
 
   } catch (error) {
     console.error('❌ Hugging Face Llama-3 Axios Error:', error.response?.data || error.message);
     
-    // 4. Fallback JSON Object in Catch Block
+    // Fallback JSON Object in Catch Block
     const fallbackTensors = generateDynamicTensors();
     console.log("[Parsed JSON Payload (Fallback)]:", fallbackTensors);
     return res.json(fallbackTensors);

@@ -1,314 +1,200 @@
 import React from 'react';
-import { CornerUpRight } from 'lucide-react';
+import { CornerUpRight, ShieldCheck, Zap, AlertTriangle, GitBranch } from 'lucide-react';
 
-/**
- * ROUTE_MATRIX
- * Dynamic routing map matrix mapping venue choke zones to dynamic SVG vector paths,
- * target exits, repeller force points, and attractor force points.
- */
 export const ROUTE_MATRIX = {
   "Central Railway Terminal": {
-    "Gate 1 (Platforms 1-4)": {
-      chokeCoords: { x: 140, y: 150 },
-      reroutePath: "M 140 70 L 140 240 L 160 240 L 160 540",
-      targetExit: "South Concourse Exit",
-      repellerPoint: { x: 0.14, y: 0.25 },
-      attractorPoint: { x: 0.16, y: 0.90 }
-    },
-    "Main Concourse (Choke Point)": {
-      chokeCoords: { x: 500, y: 300 },
-      reroutePath: "M 500 70 L 500 240 L 840 240 L 840 540",
-      targetExit: "Emergency Exit North",
-      repellerPoint: { x: 0.50, y: 0.40 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    },
-    "Ticketing Plaza": {
-      chokeCoords: { x: 840, y: 150 },
-      reroutePath: "M 840 70 L 840 240 L 840 540",
-      targetExit: "Emergency Exit North",
-      repellerPoint: { x: 0.84, y: 0.25 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    }
+    "Gate 1 (Platforms 1-4)": { targetExit: "South Concourse Exit" },
+    "Main Concourse (Choke Point)": { targetExit: "Emergency Exit North" },
+    "Ticketing Plaza": { targetExit: "Emergency Exit North" }
   },
-
   "IPL Stadium Sector 4": {
-    "Turnstile Gate A": {
-      chokeCoords: { x: 140, y: 150 },
-      reroutePath: "M 140 70 L 140 240 L 160 240 L 160 540",
-      targetExit: "Gate 8 Ground Exit",
-      repellerPoint: { x: 0.14, y: 0.25 },
-      attractorPoint: { x: 0.16, y: 0.90 }
-    },
-    "Outer Ring Ramp (Choke Point)": {
-      chokeCoords: { x: 500, y: 300 },
-      reroutePath: "M 500 70 L 500 240 L 840 240 L 840 540",
-      targetExit: "Gate 12 Bypass",
-      repellerPoint: { x: 0.50, y: 0.40 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    },
-    "VIP Gate C": {
-      chokeCoords: { x: 840, y: 150 },
-      reroutePath: "M 840 70 L 840 240 L 840 540",
-      targetExit: "Gate 12 Bypass",
-      repellerPoint: { x: 0.84, y: 0.25 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    }
+    "Turnstile Gate A": { targetExit: "Gate 8 Ground Exit" },
+    "Outer Ring Ramp (Choke Point)": { targetExit: "Gate 12 Bypass" },
+    "VIP Gate C": { targetExit: "Gate 12 Bypass" }
   },
-
   "Concert Arena": {
-    "Gate A": {
-      chokeCoords: { x: 140, y: 150 },
-      reroutePath: "M 140 70 L 140 240 L 160 240 L 160 540",
-      targetExit: "Exit 1 (West Bypass)",
-      repellerPoint: { x: 0.14, y: 0.25 },
-      attractorPoint: { x: 0.16, y: 0.90 }
-    },
-    "Gate B (Main Choke)": {
-      chokeCoords: { x: 500, y: 300 },
-      reroutePath: "M 500 70 L 500 240 L 840 240 L 840 540",
-      targetExit: "Exit 2 (East Bypass)",
-      repellerPoint: { x: 0.50, y: 0.40 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    },
-    "Gate C": {
-      chokeCoords: { x: 840, y: 150 },
-      reroutePath: "M 840 70 L 840 240 L 840 540",
-      targetExit: "Exit 2 (East Bypass)",
-      repellerPoint: { x: 0.84, y: 0.25 },
-      attractorPoint: { x: 0.84, y: 0.90 }
-    }
-  }
-};
-
-export const VENUE_CONFIGS = {
-  "Central Railway Terminal": {
-    name: "Central Railway Terminal",
-    gates: [
-      { id: "gate1", name: "Gate 1 (Platforms 1-4)", x: 140, y: 45, color: "#FFC400" },
-      { id: "choke", name: "Main Concourse (Choke Point)", x: 500, y: 45, color: "#E0143C", isChoke: true },
-      { id: "plaza", name: "Ticketing Plaza", x: 840, y: 45, color: "#00F0FF" }
-    ],
-    exits: [
-      { id: "exitNorth", name: "Emergency Exit North", x: 840, y: 555, color: "#00FF88", targetForReroute: true },
-      { id: "exitSouth", name: "South Concourse Exit", x: 160, y: 555, color: "#00FF88" }
-    ],
-    rooms: [
-      { name: "PLATFORM CORRIDOR A", x: 180, y: 100 },
-      { name: "WAITING LOUNGE", x: 480, y: 100 },
-      { name: "CONCESSION KIOSK", x: 740, y: 100 },
-      { name: "EAST TICKET HALL", x: 180, y: 310 },
-      { name: "MAIN CONCOURSE CHOKE", x: 450, y: 310, isHighlight: true },
-      { name: "WEST TICKET HALL", x: 740, y: 310 },
-      { name: "SOUTH PLATFORM BAY", x: 220, y: 490 },
-      { name: "BAGGAGE CLAIM", x: 520, y: 490 },
-      { name: "EMERGENCY NORTH BYPASS", x: 730, y: 490 }
-    ],
-    concessions: [
-      { name: "FOOD KIOSK A", x: 180, y: 150, width: 100 },
-      { name: "EXPRESS CAFE", x: 720, y: 150, width: 110 }
-    ]
-  },
-
-  "IPL Stadium Sector 4": {
-    name: "IPL Stadium Sector 4",
-    gates: [
-      { id: "gateA", name: "Turnstile Gate A", x: 140, y: 45, color: "#FFC400" },
-      { id: "ramp", name: "Outer Ring Ramp (Choke Point)", x: 500, y: 45, color: "#E0143C", isChoke: true },
-      { id: "gateC", name: "VIP Gate C", x: 840, y: 45, color: "#00F0FF" }
-    ],
-    exits: [
-      { id: "gate12", name: "Gate 12 Bypass", x: 840, y: 555, color: "#00FF88", targetForReroute: true },
-      { id: "gate8", name: "Gate 8 Ground Exit", x: 160, y: 555, color: "#00FF88" }
-    ],
-    rooms: [
-      { name: "NORTH PROMENADE", x: 180, y: 100 },
-      { name: "UPPER DECK STAIRS", x: 480, y: 100 },
-      { name: "VIP LOUNGE ENTRY", x: 740, y: 100 },
-      { name: "SECTOR 4 RAMP A", x: 180, y: 310 },
-      { name: "OUTER RING CHOKE", x: 460, y: 310, isHighlight: true },
-      { name: "SECTOR 4 RAMP C", x: 740, y: 310 },
-      { name: "MERCHANDISE ZONE", x: 200, y: 490 },
-      { name: "FOOD COURT 1", x: 520, y: 490 },
-      { name: "GATE 12 EMERGENCY PATH", x: 730, y: 490 }
-    ],
-    concessions: [
-      { name: "MERCH STORE", x: 180, y: 150, width: 110 },
-      { name: "FOOD COURT 1", x: 710, y: 150, width: 120 }
-    ]
-  },
-
-  "Concert Arena": {
-    name: "Concert Arena",
-    gates: [
-      { id: "gateA", name: "Gate A", x: 140, y: 45, color: "#FFC400" },
-      { id: "gateB", name: "Gate B (Main Choke)", x: 500, y: 45, color: "#E0143C", isChoke: true },
-      { id: "gateC", name: "Gate C", x: 840, y: 45, color: "#00F0FF" }
-    ],
-    exits: [
-      { id: "exit2", name: "Exit 2 (Bypass)", x: 840, y: 555, color: "#00FF88", targetForReroute: true },
-      { id: "exit1", name: "Exit 1", x: 160, y: 555, color: "#00FF88" }
-    ],
-    rooms: [
-      { name: "NORTH CONCOURSE A", x: 180, y: 100 },
-      { name: "CENTRAL ATRIUM", x: 480, y: 100 },
-      { name: "NORTH CONCOURSE C", x: 740, y: 100 },
-      { name: "WEST CORRIDOR", x: 180, y: 310 },
-      { name: "GATE B MAIN CHOKE", x: 460, y: 310, isHighlight: true },
-      { name: "EAST CORRIDOR", x: 740, y: 310 },
-      { name: "SOUTH PLAZA A", x: 220, y: 490 },
-      { name: "SOUTH HALL", x: 520, y: 490 },
-      { name: "EMERGENCY EXIT 2 BYPASS", x: 730, y: 490 }
-    ],
-    concessions: [
-      { name: "BEVERAGE BAR", x: 180, y: 150, width: 110 },
-      { name: "VIP BAR", x: 720, y: 150, width: 100 }
-    ]
+    "Gate A": { targetExit: "Exit 1 (West Bypass)" },
+    "Gate B (Main Choke)": { targetExit: "Exit 2 (East Bypass)" },
+    "Gate C": { targetExit: "Exit 2 (East Bypass)" }
   }
 };
 
 /**
  * VenueMapOverlay Component
- * Render dynamic vector map pathways and floating divergence badges based on ROUTE_MATRIX.
+ * Renders spatial architecture map, 2D mesh graph overlay, and real-time A* dynamic path vectors.
  */
 export const VenueMapOverlay = ({ 
   selectedVenue = "Central Railway Terminal",
   crowdSize = 50000,
   schedulePhase = "Entry Gate Open",
-  isReroutingActive = false,
+  isReroutingActive = true,
   selectedZone = "Main Concourse (Choke Point)",
   calculatedPressure = 88,
+  spatialGraph = null,
+  aStarResult = null,
+  showGraphOverlay = true,
+  uploadedSvgContent = null,
   onSelectZone = () => {}
 }) => {
-  const config = VENUE_CONFIGS[selectedVenue] || VENUE_CONFIGS["Central Railway Terminal"];
-  const venueMatrix = ROUTE_MATRIX[selectedVenue] || ROUTE_MATRIX["Central Railway Terminal"];
-  
-  // Resolve active route configuration dynamically from selected zone
-  const activeRouteConfig = venueMatrix[selectedZone] || Object.values(venueMatrix)[0];
   const isHighCongestion = calculatedPressure > 75;
+
+  const nodes = spatialGraph?.nodes || [];
+  const edges = spatialGraph?.edges || [];
+  const aStarPath = aStarResult?.path || [];
+  const aStarSvgPath = aStarResult?.svgPath || "";
 
   return (
     <div className="relative w-full h-full pointer-events-none select-none overflow-hidden">
       
+      {/* Uploaded Raw SVG Render Container (if uploaded by user) */}
+      {uploadedSvgContent && (
+        <div 
+          className="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center"
+          dangerouslySetInnerHTML={{ __html: uploadedSvgContent }}
+        />
+      )}
+
       <svg 
         className="w-full h-full absolute inset-0"
         viewBox="0 0 1000 600"
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="6" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="5" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="glow-green" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="6" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="glow-yellow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="5" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <linearGradient id="rerouteGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFC400" />
             <stop offset="50%" stopColor="#00F0FF" />
             <stop offset="100%" stopColor="#00FF88" />
           </linearGradient>
         </defs>
 
-        {/* 1. Architectural Floor Grid & Wall Outlines */}
-        <g opacity="0.35" stroke="#2A2B27" strokeWidth="1">
-          <rect x="80" y="60" width="840" height="480" rx="12" fill="none" stroke="#3A3B35" strokeWidth="2" />
-          <path d="M 80 220 L 320 220 M 420 220 L 720 220 M 820 220 L 920 220" strokeWidth="2" strokeDasharray="4 4" />
-          <path d="M 80 400 L 340 400 M 440 400 L 680 400 M 780 400 L 920 400" strokeWidth="2" strokeDasharray="4 4" />
-          
-          <line x1="320" y1="60" x2="320" y2="220" strokeWidth="2" />
-          <line x1="680" y1="60" x2="680" y2="220" strokeWidth="2" />
-          <line x1="440" y1="400" x2="440" y2="540" strokeWidth="2" />
-          <line x1="680" y1="400" x2="680" y2="540" strokeWidth="2" />
-
-          <path d="M 200 140 H 800 M 200 470 H 800" stroke="#1F201C" strokeWidth="1" />
+        {/* 1. Architectural Floor Grid & Boundary Outlines */}
+        <g opacity="0.30" stroke="#2A2B27" strokeWidth="1">
+          <rect x="80" y="50" width="840" height="500" rx="14" fill="none" stroke="#3A3B35" strokeWidth="2" />
+          <path d="M 80 210 L 920 210 M 80 390 L 920 390" strokeWidth="1.5" strokeDasharray="6 6" />
+          <line x1="320" y1="50" x2="320" y2="210" strokeWidth="2" />
+          <line x1="680" y1="50" x2="680" y2="210" strokeWidth="2" />
+          <line x1="320" y1="390" x2="320" y2="550" strokeWidth="2" />
+          <line x1="680" y1="390" x2="680" y2="550" strokeWidth="2" />
         </g>
 
-        {/* 2. Room Labels */}
-        <g fill="#6B7280" fontSize="10" fontFamily="JetBrains Mono" letterSpacing="1.2">
-          {config.rooms.map((room, idx) => (
-            <text 
-              key={idx} 
-              x={room.x} 
-              y={room.y}
-              fill={room.isHighlight ? (isReroutingActive ? "#FFC400" : "#E0143C") : "#6B7280"}
-              fontWeight={room.isHighlight ? "bold" : "normal"}
-            >
-              {room.name}
-            </text>
-          ))}
-        </g>
-
-        {/* 3. Concession Points */}
-        <g className="pointer-events-auto">
-          {config.concessions.map((item, idx) => (
-            <g key={idx} transform={`translate(${item.x}, ${item.y})`}>
-              <rect x="0" y="0" width={item.width} height="36" rx="4" fill="#00F0FF" fillOpacity="0.08" stroke="#00F0FF" strokeWidth="1.5" />
-              <text x={item.width / 2} y="22" textAnchor="middle" fill="#00F0FF" fontSize="10" fontFamily="JetBrains Mono" fontWeight="bold">
-                {item.name}
-              </text>
-            </g>
-          ))}
-        </g>
-
-        {/* 4. Entry Gates */}
-        <g className="pointer-events-auto cursor-pointer">
-          {config.gates.map((gate) => (
-            <g key={gate.id} transform={`translate(${gate.x}, ${gate.y})`} onClick={() => onSelectZone(gate.name)}>
-              <rect 
-                x="-60" y="-15" width="120" height="30" rx="4" 
-                fill="#161310" 
-                stroke={gate.name === selectedZone ? "#FFC400" : (gate.isChoke ? (isReroutingActive ? "#FFC400" : "#E0143C") : gate.color)} 
-                strokeWidth={gate.isChoke || gate.name === selectedZone ? "2" : "1.5"} 
-                filter={gate.isChoke ? (isReroutingActive ? "url(#glow-yellow)" : "url(#glow-red)") : "none"}
+        {/* 2. TASK 1: GRAPH OVERLAY MESH (Vector Edges & Nodes) */}
+        {showGraphOverlay && edges.length > 0 && (
+          <g opacity="0.45">
+            {edges.map(edge => (
+              <line
+                key={edge.id}
+                x1={edge.x1}
+                y1={edge.y1}
+                x2={edge.x2}
+                y2={edge.y2}
+                stroke="#00F0FF"
+                strokeWidth="1"
+                strokeDasharray="3 3"
               />
-              <text 
-                x="0" y="4" textAnchor="middle" 
-                fill={gate.name === selectedZone ? "#FFC400" : (gate.isChoke ? (isReroutingActive ? "#FFC400" : "#E0143C") : gate.color)} 
-                fontSize="11" fontFamily="Space Grotesk" fontWeight="bold"
-              >
-                {gate.name}
-              </text>
-            </g>
-          ))}
-        </g>
+            ))}
+          </g>
+        )}
 
-        {/* 5. Emergency Exits */}
-        <g className="pointer-events-auto">
-          {config.exits.map((exit) => (
-            <g key={exit.id} transform={`translate(${exit.x}, ${exit.y})`}>
-              <rect 
-                x="-65" y="-15" width="130" height="30" rx="4" 
-                fill={exit.name.includes(activeRouteConfig.targetExit.split(' ')[0]) && isReroutingActive ? "#00FF88" : "#052E16"} 
-                stroke="#00FF88" 
-                strokeWidth={exit.name.includes(activeRouteConfig.targetExit.split(' ')[0]) && isReroutingActive ? "2.5" : "1.5"}
-                filter={exit.name.includes(activeRouteConfig.targetExit.split(' ')[0]) && isReroutingActive ? "url(#glow-green)" : "none"}
-              />
-              <text 
-                x="0" y="5" textAnchor="middle" 
-                fill={exit.name.includes(activeRouteConfig.targetExit.split(' ')[0]) && isReroutingActive ? "#000000" : "#00FF88"} 
-                fontSize="11" fontFamily="Space Grotesk" fontWeight="bold"
-              >
-                {exit.name}
-              </text>
-            </g>
-          ))}
-        </g>
+        {/* TASK 1: GRAPH OVERLAY NODES */}
+        {showGraphOverlay && nodes.length > 0 && (
+          <g className="pointer-events-auto">
+            {nodes.map(node => {
+              const isChoke = node.isChoke || (node.congestion && node.congestion > 0.60);
+              const isEntry = node.type === 'entry';
+              const isExit = node.type === 'exit';
+              const inPath = aStarPath.some(pn => pn.id === node.id);
 
-        {/* 6. Dynamic Bottleneck Choke Ring */}
-        <g transform={`translate(${activeRouteConfig.chokeCoords.x}, ${activeRouteConfig.chokeCoords.y})`}>
+              let nodeColor = "#00F0FF";
+              let filter = "none";
+
+              if (isChoke) {
+                nodeColor = "#E0143C";
+                filter = "url(#glow-red)";
+              } else if (isEntry) {
+                nodeColor = "#FFC400";
+                filter = "url(#glow-yellow)";
+              } else if (isExit) {
+                nodeColor = "#00FF88";
+                filter = "url(#glow-green)";
+              } else if (inPath) {
+                nodeColor = "#00FFCC";
+                filter = "url(#glow-cyan)";
+              }
+
+              return (
+                <g key={node.id} transform={`translate(${node.x}, ${node.y})`} className="cursor-pointer">
+                  {/* Outer Pulsing Ring for High Congestion Node */}
+                  {isChoke && (
+                    <circle
+                      r="18"
+                      fill="none"
+                      stroke="#E0143C"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 2"
+                      filter="url(#glow-red)"
+                      className="animate-spin"
+                    />
+                  )}
+
+                  {/* Node Circle */}
+                  <circle
+                    r={inPath ? "8" : "5"}
+                    fill={nodeColor}
+                    stroke="#161310"
+                    strokeWidth="2"
+                    filter={filter}
+                  />
+
+                  {/* Congestion Percentage Badge */}
+                  {node.congestion !== undefined && node.congestion > 0.25 && (
+                    <g transform="translate(0, -14)">
+                      <rect x="-16" y="-8" width="32" height="14" rx="3" fill="#161310" stroke={nodeColor} strokeWidth="1" />
+                      <text x="0" y="2" textAnchor="middle" fill={nodeColor} fontSize="8" fontFamily="JetBrains Mono" fontWeight="bold">
+                        {Math.round(node.congestion * 100)}%
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Node Label */}
+                  <text
+                    x="0"
+                    y={isChoke ? "28" : "18"}
+                    textAnchor="middle"
+                    fill={nodeColor}
+                    fontSize="9"
+                    fontFamily="Space Grotesk"
+                    fontWeight={isChoke || inPath ? "bold" : "normal"}
+                  >
+                    {node.name}
+                  </text>
+                </g>
+              );
+            })}
+          </g>
+        )}
+
+        {/* 3. Dynamic Bottleneck Choke Ring Focus */}
+        <g transform="translate(500, 300)">
           <circle 
             r={isHighCongestion ? "65" : "45"} 
             fill="#E0143C" 
@@ -323,32 +209,42 @@ export const VenueMapOverlay = ({
           <circle r="6" fill="#E0143C" />
 
           <g transform="translate(0, 48)">
-            <rect x="-70" y="-12" width="140" height="24" rx="4" fill="#161310" stroke="#E0143C" strokeWidth="1" />
+            <rect x="-75" y="-12" width="150" height="24" rx="4" fill="#161310" stroke="#E0143C" strokeWidth="1" />
             <text x="0" y="4" textAnchor="middle" fill="#E0143C" fontSize="10" fontFamily="JetBrains Mono" fontWeight="bold">
-              {isReroutingActive ? 'PRESSURE DIVERGING' : `BOTTLENECK ${calculatedPressure}%`}
+              {isReroutingActive ? 'AI BYPASS ROUTING ACTIVE' : `BOTTLENECK ${calculatedPressure}%`}
             </text>
           </g>
         </g>
 
-        {/* TASK 2: DYNAMIC SVG VECTOR PATH RENDERER */}
-        {isReroutingActive && (
+        {/* 4. TASK 3: A* PATHFINDING ANIMATED VECTOR STROKE */}
+        {isReroutingActive && aStarSvgPath && (
           <g>
+            {/* Background Glow Path */}
             <path 
-              d={activeRouteConfig.reroutePath} 
+              d={aStarSvgPath} 
               stroke="#00FFCC" 
+              strokeWidth="6" 
+              fill="none" 
+              opacity="0.3"
+              filter="url(#glow-green)"
+            />
+            {/* Animated Dashed Vector Line */}
+            <path 
+              d={aStarSvgPath} 
+              stroke="url(#pathGradient)" 
               strokeWidth="4" 
               fill="none" 
-              strokeDasharray="12 6"
+              strokeDasharray="14 8"
               filter="url(#glow-green)"
-              className="animate-[dash_1.5s_linear_infinite]" 
+              className="animate-[dash_1.2s_linear_infinite]" 
             />
           </g>
         )}
 
       </svg>
 
-      {/* TASK 2: DYNAMIC FLOATING BADGE SHOWING RECOMMENDED DIVERGENCE */}
-      {isReroutingActive && (
+      {/* TASK 3: DYNAMIC FLOATING BADGE FOR A* AI PATHFINDING ROUTE */}
+      {isReroutingActive && aStarResult && (
         <div className="absolute top-4 right-4 pointer-events-auto bg-[#161310]/95 backdrop-blur-md border border-[#00FFCC] p-3.5 rounded shadow-2xl flex items-center space-x-3 glow-green animate-pulse">
           <div className="w-9 h-9 rounded bg-[#00FFCC]/20 border border-[#00FFCC] flex items-center justify-center shrink-0">
             <CornerUpRight className="w-5 h-5 text-[#00FFCC]" />
@@ -356,18 +252,25 @@ export const VenueMapOverlay = ({
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-heading font-bold text-[#00FFCC] uppercase tracking-wider">
-                RECOMMENDED DIVERGENCE
+                A* AI BYPASS PATHFINDER
               </span>
               <span className="text-[9px] bg-[#00FFCC] text-black font-bold px-1.5 py-0.2 rounded uppercase">
-                ACTIVE VECTOR
+                OPTIMAL VECTOR
               </span>
             </div>
             <p className="text-sm font-mono font-extrabold text-white mt-0.5 flex items-center space-x-1.5">
-              <span className="text-[#FFC400]">{activeRouteConfig.targetExit}</span>
+              <span>{aStarPath[0]?.name || 'Entry Gate'}</span>
+              <span className="text-[#00FFCC]">➔</span>
+              <span className="text-[#00FF88]">{aStarPath[aStarPath.length - 1]?.name || 'Emergency Exit'}</span>
             </p>
-            <p className="text-[10px] font-mono text-gray-300 mt-1">
-              Diverting crowd pressure away from {selectedZone}.
-            </p>
+            <div className="flex items-center space-x-3 text-[10px] font-mono text-gray-300 mt-1">
+              <span>Cost Weight: <strong className="text-[#FFC400]">{aStarResult.weightedCost}</strong></span>
+              <span>Distance: <strong className="text-white">{aStarResult.totalDistance}m</strong></span>
+              <span className="text-[#00FF88] flex items-center space-x-0.5">
+                <ShieldCheck className="w-3 h-3" />
+                <span>Choke Bypassed</span>
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -375,7 +278,7 @@ export const VenueMapOverlay = ({
       <style>{`
         @keyframes dash {
           to {
-            stroke-dashoffset: -36;
+            stroke-dashoffset: -44;
           }
         }
       `}</style>
