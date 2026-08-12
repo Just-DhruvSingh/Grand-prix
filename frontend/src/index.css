@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background-color: #050404;
+    color: #E0DCD6;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(42, 43, 39, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(42, 43, 39, 0.25) 1px, transparent 1px);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 15px rgba(255, 196, 0, 0.35);
+}
+
+.glow-red {
+  box-shadow: 0 0 15px rgba(224, 20, 60, 0.4);
+}
