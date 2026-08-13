@@ -2,29 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══ Kinetic Flow Design System ═══ */
+:root {
+  --bg-primary:    #161310;
+  --bg-surface:    #1E1A17;
+  --bg-elevated:   #252018;
+  --border-dim:    #2E2820;
+  --border-glow:   #4A3F30;
+  --neon-cyan:     #00F5FF;
+  --neon-amber:    #FFB800;
+  --neon-crimson:  #FF2D55;
+  --neon-green:    #39FF14;
+  --text-primary:  #F0EBE3;
+  --text-secondary:#8A7F72;
+  --text-accent:   #00F5FF;
+}
+
 @layer base {
   body {
     font-family: 'JetBrains Mono', monospace;
-    background-color: #050404;
-    color: #E0DCD6;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
   }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-dim);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-glow);
+  }
 }
 
+@layer utilities {
+  .glow-cyan {
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.35), 0 0 30px rgba(0, 245, 255, 0.15);
+  }
+  .glow-amber {
+    box-shadow: 0 0 15px rgba(255, 184, 0, 0.35), 0 0 30px rgba(255, 184, 0, 0.15);
+  }
+  .glow-crimson {
+    box-shadow: 0 0 15px rgba(255, 45, 85, 0.4), 0 0 30px rgba(255, 45, 85, 0.2);
+  }
+  .glow-green {
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.35), 0 0 30px rgba(57, 255, 20, 0.15);
+  }
+}
+
+/* Scanline overlay utility */
+.scanline-overlay {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 3px
+  );
+  pointer-events: none;
+}
+
+/* Grid background pattern */
 .bg-grid-pattern {
   background-size: 32px 32px;
-  background-image: 
-    linear-gradient(to right, rgba(42, 43, 39, 0.25) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(42, 43, 39, 0.25) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, rgba(46, 40, 32, 0.25) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(46, 40, 32, 0.25) 1px, transparent 1px);
 }
 
-.glow-yellow {
-  box-shadow: 0 0 15px rgba(255, 196, 0, 0.35);
+/* Fade in animation for tooltips */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.glow-red {
-  box-shadow: 0 0 15px rgba(224, 20, 60, 0.4);
+/* A* path dash animation */
+@keyframes dash {
+  to { stroke-dashoffset: -44; }
 }
